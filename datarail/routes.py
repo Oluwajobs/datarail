@@ -1,9 +1,9 @@
 # importing dependencies
+import email
 from flask import redirect, render_template, flash, url_for
-from flask_sqlalchemy import SQLAlchemy  # import database dependency
 from datarail.forms import RegistrationForm, LoginForm
-from datarail.models import posts
-from datarail import app
+from datarail.models import User, posts
+from datarail import app, bcrypt, db
 
 
 #--------------------------------------------------#
@@ -32,10 +32,19 @@ def about():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        # returning a message fpr user and giving it a success category
-        flash(
-            f"Account successfully created for {form.username.data}!", category='success')
-        return redirect(url_for('home'))
+        password = form.password.data
+        username = form.username.data
+        email = form.email.data
+        # hashing the password
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        # creating a user in our db
+        user = User(username=username, email=email, password=hashed_password)
+        # commiting it into our db
+        db.session.add(user)
+        db.session.commit()
+        # Directing user to login page
+        flash("Your Account has been successfully created! You are now able to log in", category='success')
+        return redirect(url_for('login'))
 
     return render_template('register.html', title='Register', form=form)
 
