@@ -54,10 +54,10 @@
             <div class="form-group mb-3">
                 {{form.confirm_password.label (class="form-control-label")}}
                 <!-- showing user errors in form -->
-                {% if form.confirm_passworderrors %}
+                {% if form.confirm_password.errors %}
                 {{form.confirm_password(class="form-control form-control-lg is-invalid")}}
                 <div class="invalid-feedback">
-                    {% for error in form.confirm_passworderrors %}
+                    {% for error in form.confirm_password.errors %}
                     <span>{{error}}</span>
                     {% endfor %}
                 </div>
