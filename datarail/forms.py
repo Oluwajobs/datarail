@@ -1,5 +1,4 @@
 # Installing flask package for forms
-from ast import Str
 from flask_wtf import FlaskForm
 from wtforms import StringField, EmailField, BooleanField, PasswordField, SubmitField  # importing our form fields from wtforms
 from wtforms.validators import DataRequired, EqualTo, Length, Email
