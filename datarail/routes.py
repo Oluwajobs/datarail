@@ -4,7 +4,7 @@ from flask import redirect, render_template, flash, url_for
 from datarail.forms import RegistrationForm, LoginForm
 from datarail.models import User, posts
 from datarail import app, bcrypt, db
-from flask_login import login_user, logout_user
+from flask_login import login_required, login_user, logout_user
 
 
 #--------------------------------------------------#
@@ -65,6 +65,12 @@ def login():
     return render_template('login.html', title='Login', form=form)
 
 
+@app.route("/account")
+@login_required
+def account():
+    return "<h2> Account </h2>"
+
 @app.route("/logout")
 def logout():
     logout_user()
+    return redirect(url_for('login'))
