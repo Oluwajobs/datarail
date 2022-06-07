@@ -4,6 +4,7 @@ from flask import redirect, render_template, flash, url_for
 from datarail.forms import RegistrationForm, LoginForm
 from datarail.models import User, posts
 from datarail import app, bcrypt, db
+from flask_login import login_user
 
 
 #--------------------------------------------------#
@@ -55,10 +56,10 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        if form.email.data == 'admin@datarail.com' and form.password.data == 'testing':
-            flash("You have been successfully logged in!", "success")
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
             return redirect(url_for('home'))
         else:
-            flash(
-                "Login was unsuccessful. Check your information and try again", "danger")
+            flash("Login was unsuccessful. Check your information and try again", "danger")
     return render_template('login.html', title='Login', form=form)
