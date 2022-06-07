@@ -4,7 +4,7 @@ from flask import redirect, render_template, flash, url_for
 from datarail.forms import RegistrationForm, LoginForm
 from datarail.models import User, posts
 from datarail import app, bcrypt, db
-from flask_login import login_user
+from flask_login import login_user, logout_user
 
 
 #--------------------------------------------------#
@@ -63,3 +63,8 @@ def login():
         else:
             flash("Login was unsuccessful. Check your information and try again", "danger")
     return render_template('login.html', title='Login', form=form)
+
+
+@app.route("/logout")
+def logout():
+    logout_user()
