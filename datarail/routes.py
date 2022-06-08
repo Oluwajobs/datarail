@@ -68,7 +68,7 @@ def login():
 @app.route("/account")
 @login_required
 def account():
-    return "<h2> Account </h2>"
+    return render_template('account.html', title='Account')
 
 @app.route("/logout")
 def logout():
