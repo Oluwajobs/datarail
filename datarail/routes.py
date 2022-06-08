@@ -4,7 +4,7 @@ from flask import redirect, render_template, flash, url_for
 from datarail.forms import RegistrationForm, LoginForm
 from datarail.models import User, posts
 from datarail import app, bcrypt, db
-from flask_login import login_required, login_user, logout_user
+from flask_login import login_required, login_user, logout_user, current_user
 
 
 #--------------------------------------------------#
@@ -32,6 +32,9 @@ def about():
 @app.route("/register", methods=['POST', 'GET'])
 def register():
     form = RegistrationForm()
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+
     if form.validate_on_submit():
         password = form.password.data
         username = form.username.data
@@ -55,6 +58,9 @@ def register():
 @app.route("/login", methods=["POST", "GET"])
 def login():
     form = LoginForm()
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):

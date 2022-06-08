@@ -11,6 +11,8 @@ app.config['SECRET_KEY'] = "395e5168605a9fdd39af680175df2805"
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///site.db"
 db = SQLAlchemy(app)  # initializing app
 bcrypt = Bcrypt(app)  # initializing app
-login_manager = LoginManager(app)
+login_manager = LoginManager(app)  #initializing our LoginManage to handle user sessions
+login_manager.login_view = 'login'  # telling login_manager what route to direct unauthorized users to
+login_manager.login_message_category = 'info'  #b Bootstrap category for our message to user
 
 from datarail import routes  # importing the routes
