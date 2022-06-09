@@ -1,6 +1,7 @@
 # importing dependencies
 import os
 import secrets
+from PIL import Image  # used for resizing images
 from flask import redirect, render_template, flash, url_for, request
 from datarail.forms import RegistrationForm, LoginForm, UpdateAccountForm
 from datarail.models import User, posts
@@ -78,13 +79,18 @@ def login():
 #----------------------------------------------------------------------#
 
 def save_picture(form_picture):
-    random_hex = secrets.token_hex(8)
-    _, fext = os.path.splitext(form_picture.filename)
-    picture_new_name = random_hex + fext
+    random_hex = secrets.token_hex(8)  # generates a random hex token of 8 byte 
+    _, fext = os.path.splitext(form_picture.filename)  # splits the file name from the extention
+    picture_new_name = random_hex + fext  # concat of the random number and the image extension
     picture_path = os.path.join(
         app.root_path, "static/profile_pics", picture_new_name)
     # saving the user uploaded picture to the path we created
-    form_picture.save(picture_path)
+
+    # resizing the image using Pillow
+    output_size = (150, 150)
+    i = Image.open(form_picture)  # parsing the form.picture.data input into Pillow
+    i.thumbnail(output_size)  # resizing to specified dim
+    i.save(picture_path)  # saving picture to path with our new size and random hex name
 
     return picture_new_name
 
