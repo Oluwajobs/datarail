@@ -3,7 +3,7 @@ import os
 import secrets
 from PIL import Image  # used for resizing images
 from flask import redirect, render_template, flash, url_for, request
-from datarail.forms import RegistrationForm, LoginForm, UpdateAccountForm
+from datarail.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
 from datarail.models import User, posts
 from datarail import app, bcrypt, db
 from flask_login import login_required, login_user, logout_user, current_user
@@ -119,3 +119,15 @@ def account():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+#-------------------------------------------#
+# Route for Creating Posts      
+#-------------------------------------------#
+
+@app.route('/post/new', methods=['GET', 'POST'])
+def new_post():
+    form = PostForm()
+    if form.validate_on_submit():
+        flash("Your post has been created", "success")
+        return redirect(url_for('home'))
+    return render_template('create_post.html', title="New Post", form=form)
