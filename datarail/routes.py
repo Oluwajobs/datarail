@@ -4,7 +4,7 @@ import secrets
 from PIL import Image  # used for resizing images
 from flask import redirect, render_template, flash, url_for, request
 from datarail.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
-from datarail.models import User, posts
+from datarail.models import Post, User, posts
 from datarail import app, bcrypt, db
 from flask_login import login_required, login_user, logout_user, current_user
 
@@ -18,6 +18,7 @@ from flask_login import login_required, login_user, logout_user, current_user
 @app.route("/")
 @app.route("/home")
 def home():
+    posts = Post.query.all()
     return render_template('home.html', posts=posts)
 
 # route for about page
@@ -128,7 +129,14 @@ def logout():
 @login_required
 def new_post():
     form = PostForm()
+    
     if form.validate_on_submit():
+        # passing form data into our Post table
+        title = form.title.data
+        content = form.content.data
+        post = Post(title=title, content=content, author=current_user)
+        db.session.add(post)
+        db.session.commit()
         flash("Your post has been created", "success")
         return redirect(url_for('home'))
-    return render_template('create_post.html', title="New Post", form=form)
+    return render_template('create_post.html', title="New Post", legend="New Post", form=form)

@@ -2,11 +2,12 @@
 {%block content%}
 
 <!-- Form section start -->
+<!-- This page contains a form that allows the user to create a new post.  -->
 <div class="content-section">
     <form action="" method="POST" class="row g-3 needs-validation" novalidate>
         {{form.hidden_tag()}}
         <fieldset class="form-group">
-            <legend class="border-bottom mb-4">New Post</legend>
+            <legend class="border-bottom mb-4">{{legend}}</legend>
 
 
             <div class="form-group mb-3">
