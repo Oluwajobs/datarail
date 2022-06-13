@@ -2,7 +2,7 @@
 import os
 import secrets
 from PIL import Image  # used for resizing images
-from flask import redirect, render_template, flash, url_for, request
+from flask import redirect, render_template, flash, url_for, request, abort
 from datarail.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
 from datarail.models import Post, User, posts
 from datarail import app, bcrypt, db
@@ -140,3 +140,44 @@ def new_post():
         flash("Your post has been created", "success")
         return redirect(url_for('home'))
     return render_template('create_post.html', title="New Post", legend="New Post", form=form)
+
+
+#-------------------------------------------#
+# Route for getting each Posts
+#-------------------------------------------#
+@app.route('/post/<post_id>', methods=['GET'])
+@login_required
+def post(post_id):
+    post = Post.query.get_or_404(post_id)
+    return render_template('posts.html', post=post, title=post.title)
+
+
+
+
+
+#-------------------------------------------#
+# Route for Updating Posts      
+#-------------------------------------------#
+
+
+@app.route('/post/<post_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_post(post_id):
+    form = PostForm()
+    # get the post to be edited first
+    post = Post.query.get_or_404(post_id)
+    if current_user != post.author:
+        abort(403)
+    if form.validate_on_submit():
+        title = form.title.data
+        content = form.content.data
+        post = Post(title=title, content=content, author=current_user)
+        db.session.commit()
+        flash("Your post has been updated", "success")
+        return redirect(url_for('home'))
+    elif request.method == 'GET':
+        form.title.data = post.title
+        form.content.data = post.content
+    return render_template('create_post.html', title="New Post", legend="Edit Post", form=form)
+
+    
