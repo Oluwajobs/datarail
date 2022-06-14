@@ -145,7 +145,7 @@ def new_post():
 #-------------------------------------------#
 # Route for getting each Posts
 #-------------------------------------------#
-@app.route('/post/<post_id>', methods=['GET'])
+@app.route('/post/<int:post_id>', methods=['GET'])
 @login_required
 def post(post_id):
     post = Post.query.get_or_404(post_id)
@@ -158,24 +158,37 @@ def post(post_id):
 #-------------------------------------------#
 
 
-@app.route('/post/<post_id>/edit', methods=['GET', 'POST'])
+@app.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_post(post_id):
-    form = PostForm()
     # get the post to be edited first
     post = Post.query.get_or_404(post_id)
-    if current_user != post.author:
+    if post.author != current_user:
         abort(403)
+    form = PostForm()
     if form.validate_on_submit():
-        title = form.title.data
-        content = form.content.data
-        post = Post(title=title, content=content, author=current_user)
+        post.title = form.title.data  # they are already in the database we are just updating them.
+        post.content = form.content.data
+        
         db.session.commit()
         flash("Your post has been updated", "success")
         return redirect(url_for('post', post_id=post.id))
     elif request.method == 'GET':
         form.title.data = post.title
         form.content.data = post.content
-    return render_template('create_post.html', title="New Post", legend="Edit Post", form=form)
+    return render_template('create_post.html', title="Edit Post", legend="Edit Post", form=form)
 
     
+#-------------------------------------------#
+# Route for Deleting each Posts
+#-------------------------------------------#
+@app.route('/post/<int:post_id>/delete', methods=['POST'])
+@login_required
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.author != current_user:
+        abort(403)
+    db.session.delete(post)
+    db.session.commit()  # Always commit after making changes to the db for it to persist.
+    flash("Your post has been deleted", "success")
+    return redirect(url_for('home'))
