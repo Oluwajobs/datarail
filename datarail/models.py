@@ -1,21 +1,10 @@
 # importing dependencies
+from tkinter.messagebox import NO
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer   # package for generating token
 from datetime import datetime
-from datarail import db, login_manager
+from datarail import db, login_manager, app
 from flask_login import UserMixin
 
-
-# dummy data
-posts = [
-    {'author':'John Doe', 
-    'date_posted': 'June 5, 2022', 
-    'content': 'This is my first post',
-    'title':'My First post!'},
-
-    {'author':'Sarah Sun', 
-    'date_posted': 'June 4, 2022', 
-    'content': 'This Sarah\'s Second post',
-    'title':'My Second post!'}, 
-    ]
 
 # load users
 @login_manager.user_loader
@@ -39,6 +28,21 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(60), nullable=False)
     # establishing one to many relationship with the post table
     post = db.relationship('Post', backref='author', lazy=True)
+
+    def get_reset_token(self, expire_sec=1800):
+        """This method creates a payload using the user_id and token generated from itsdangerous"""
+        s = Serializer(app.config['SECRET_KEY'], expire_sec)
+        return s.dumps({'user_id': self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_reset_token(token):
+        """This method verifies if the user has a valid token to reset their password"""
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            user_id = s.loads(token)['user_id']  # returns a tuple of our payload...i.e. user_id and header
+        except:
+            return None
+        return User.query.get(user_id)
 
     def __repr__(self):
         return f"({self.username}, {self.email}, {self.image_file})"
