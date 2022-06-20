@@ -18,7 +18,8 @@ from flask_login import login_required, login_user, logout_user, current_user
 @app.route("/")
 @app.route("/home")
 def home():
-    posts = Post.query.all()
+    page = request.args.get("page", 1, type=int)
+    posts = Post.query.paginate(page=page, per_page=3)  # limiting the number of items on a page using pagination
     return render_template('home.html', posts=posts)
 
 # route for about page
