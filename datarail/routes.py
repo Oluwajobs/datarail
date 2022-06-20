@@ -4,10 +4,11 @@ import secrets
 from PIL import Image  # used for resizing images
 from flask import redirect, render_template, flash, url_for, request, abort
 from sqlalchemy import desc
-from datarail.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
+from datarail.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, RequestResetForm, ResetPasswordForm
 from datarail.models import Post, User
-from datarail import app, bcrypt, db
+from datarail import app, bcrypt, db, mail
 from flask_login import login_required, login_user, logout_user, current_user
+from flask_mail import Message
 
 
 #--------------------------------------------------#
@@ -205,3 +206,62 @@ def user_post(username):
     posts = Post.query.filter_by(author=user).order_by(
         Post.date_posted.desc()).paginate(page=page, per_page=5)
     return render_template('user_post.html', posts=posts, user=user)
+
+#-----------------------------------#
+# creating a fuction to send email with token to user
+#-----------------------------------#
+def send_reset_email(user):
+    token = user.get_reset_token()
+    msg = Message(subject="Password Reset Request", recipients=[user.email], sender="noreply@datarail.com")
+    msg.body = f'''To reset your password, visit the following link:
+{url_for('reset_token', token=token, _external=True)}
+If you did not make this request, simply ignore this email and no changes will be made to your account
+'''
+# the _external allows the app to generate an absolute path for our url
+    mail.send(msg)  # sends the email to our user
+
+#-----------------------------------#
+# creating a route for password reset request
+#-----------------------------------#
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_request():
+    # make sure user is logged out before they can reset password
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    form = RequestResetForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        send_reset_email(user)
+        flash("An email has been sent with instructions to reset your password. Make sure to check your inbox or spam", "info")
+        return redirect(url_for('login'))
+    return render_template('reset_request.html', title="Reset Password", form=form)
+
+
+#-----------------------------------#
+# creating a route for password reset
+#-----------------------------------#
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_token(token):
+    # make sure user is logged out before they can reset password
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    # validate token provided by user
+    user = User.verify_reset_token(token)
+    if not user:
+        flash('Token is invalid or expired', 'warning')
+        return redirect(url_for('reset_request'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        password = form.password.data
+        # hashing the password
+        hashed_password = bcrypt.generate_password_hash(
+            password).decode('utf-8')
+        # updating user password in our db
+        user.password = hashed_password
+        # commiting it into our db
+        db.session.commit()
+        # Directing user to login page
+        flash("Your password has been successfully updated! You are now able to log in",
+              category='success')
+        return redirect(url_for('login'))
+    return render_template('reset_token.html', title="Reset Password", form=form)
