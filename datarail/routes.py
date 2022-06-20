@@ -5,7 +5,7 @@ from PIL import Image  # used for resizing images
 from flask import redirect, render_template, flash, url_for, request, abort
 from sqlalchemy import desc
 from datarail.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
-from datarail.models import Post, User, posts
+from datarail.models import Post, User
 from datarail import app, bcrypt, db
 from flask_login import login_required, login_user, logout_user, current_user
 

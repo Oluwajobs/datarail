@@ -1,21 +1,9 @@
 # importing dependencies
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from datetime import datetime
 from datarail import db, login_manager
 from flask_login import UserMixin
 
-
-# dummy data
-posts = [
-    {'author':'John Doe', 
-    'date_posted': 'June 5, 2022', 
-    'content': 'This is my first post',
-    'title':'My First post!'},
-
-    {'author':'Sarah Sun', 
-    'date_posted': 'June 4, 2022', 
-    'content': 'This Sarah\'s Second post',
-    'title':'My Second post!'}, 
-    ]
 
 # load users
 @login_manager.user_loader
