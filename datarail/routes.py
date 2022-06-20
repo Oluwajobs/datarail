@@ -3,6 +3,7 @@ import os
 import secrets
 from PIL import Image  # used for resizing images
 from flask import redirect, render_template, flash, url_for, request, abort
+from sqlalchemy import desc
 from datarail.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
 from datarail.models import Post, User, posts
 from datarail import app, bcrypt, db
@@ -19,7 +20,9 @@ from flask_login import login_required, login_user, logout_user, current_user
 @app.route("/home")
 def home():
     page = request.args.get("page", 1, type=int)
-    posts = Post.query.paginate(page=page, per_page=3)  # limiting the number of items on a page using pagination
+    # limiting the number of items on a page using pagination
+    # using order_by desc to output posts based on the latest
+    posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)  
     return render_template('home.html', posts=posts)
 
 # route for about page
@@ -193,3 +196,12 @@ def delete_post(post_id):
     db.session.commit()  # Always commit after making changes to the db for it to persist.
     flash("Your post has been deleted", "success")
     return redirect(url_for('home'))
+
+
+@app.route("/user/<string:username>")
+def user_post(username):
+    page = request.args.get("page", 1, type=int)
+    user = User.query.filter_by(username=username).first_or_404()  # Getting the username of the post
+    posts = Post.query.filter_by(author=user).order_by(
+        Post.date_posted.desc()).paginate(page=page, per_page=5)
+    return render_template('user_post.html', posts=posts, user=user)
